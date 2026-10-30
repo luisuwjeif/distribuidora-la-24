@@ -23,7 +23,7 @@ except ImportError:
     InvalidToken = Exception
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='Plantillas', static_folder='estática')
 
 
 def cargar_clave_secreta():
