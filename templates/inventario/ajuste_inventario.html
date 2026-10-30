@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ajuste de inventario - Salsamentaria</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/productos.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- BARRA SUPERIOR -->
+
+<nav class="navbar navbar-dark barra-superior">
+
+    <div class="container-fluid">
+
+        <span class="navbar-brand mb-0 h1">
+            Salsamentaria
+        </span>
+
+        <a
+            href="{{ url_for('logout') }}"
+            class="btn btn-outline-light"
+        >
+            Cerrar sesión
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<div class="container-fluid">
+
+    <div class="row">
+
+
+        <!-- MENÚ LATERAL -->
+
+        {% include "_menu_lateral.html" %}
+
+
+
+        <!-- CONTENIDO -->
+
+        <main class="col-md-10 contenido">
+
+            <div class="container-fluid">
+
+
+                <!-- MENSAJES -->
+
+                {% with mensajes = get_flashed_messages(with_categories=true) %}
+
+                    {% if mensajes %}
+
+                        {% for categoria, mensaje in mensajes %}
+
+                            <div
+                                class="alert alert-{{ categoria }}"
+                                role="alert"
+                            >
+                                {{ mensaje }}
+                            </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+
+                <h1>
+                    Ajuste de inventario
+                </h1>
+
+
+
+                <div class="card tarjeta">
+
+                    <div class="card-body">
+
+                        <h4 class="mb-4">
+                            Registrar ajuste
+                        </h4>
+
+
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('guardar_ajuste_inventario') }}"
+                            id="formAjuste"
+                        >
+
+
+                            <!-- PRODUCTO -->
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="producto"
+                                    class="form-label"
+                                >
+                                    Producto
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="producto"
+                                    class="form-control"
+                                    placeholder="Escribe nombre o el código de barras"
+                                    autocomplete="off"
+                                >
+
+
+                                <!-- RESULTADOS DE BÚSQUEDA -->
+
+                                <div
+                                    id="resultadosProductos"
+                                    class="list-group"
+                                    style="display: none;"
+                                >
+
+                                    {% for producto in productos %}
+
+                                        <button
+                                            type="button"
+                                            class="list-group-item list-group-item-action producto-opcion"
+
+                                            data-id="{{ producto[0] }}"
+
+                                            data-nombre="{{ producto[1] }}"
+
+                                            data-barras="{{ producto[2] if producto[2] else '' }}"
+                                        >
+
+                                            <strong>
+                                                {{ producto[1] }}
+                                            </strong>
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                Código:
+                                                {{ producto[0] }}
+
+                                                {% if producto[2] %}
+
+                                                    |
+
+                                                    Código de barras:
+                                                    {{ producto[2] }}
+
+                                                {% endif %}
+
+                                            </small>
+
+                                        </button>
+
+                                    {% endfor %}
+
+                                </div>
+
+
+                            </div>
+
+
+
+                            <!-- CANTIDAD -->
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="cantidad"
+                                    class="form-label"
+                                >
+                                    Cantidad a modificar
+                                </label>
+
+
+                                <input
+                                    type="number"
+                                    id="cantidad"
+                                    class="form-control"
+                                >
+
+
+                            </div>
+
+
+
+                            <!-- BODEGA -->
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="cod_bod"
+                                    class="form-label"
+                                >
+                                    Bodega
+                                </label>
+
+
+                                <select
+                                    id="cod_bod"
+                                    class="form-select"
+                                >
+
+                                    <option value="">
+                                        Seleccionar bodega
+                                    </option>
+
+
+                                    {% for bodega in bodegas %}
+
+                                        <option
+                                            value="{{ bodega[0] }}"
+                                        >
+                                            {{ bodega[1] }}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+
+                            <!-- BOTÓN AÑADIR -->
+
+                            <div class="mb-4">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-dark"
+                                    onclick="agregarProducto()"
+                                >
+                                    + Añadir producto
+                                </button>
+
+                            </div>
+
+
+
+                            <!-- PRODUCTOS AGREGADOS -->
+
+                            <div class="mb-4">
+
+                                <label class="form-label">
+                                    Productos agregados
+                                </label>
+
+
+                                <div
+                                    id="listaAgregados"
+                                    class="border rounded p-2"
+                                >
+
+                                    <div class="text-muted">
+                                        No hay productos agregados.
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- DATOS OCULTOS -->
+
+                            <div id="datosProductos"></div>
+
+
+
+                            <!-- BOTONES -->
+
+                            <div class="d-flex gap-2">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-dark"
+                                >
+                                    Guardar ajuste
+                                </button>
+
+
+                                <a
+                                    href="{{ url_for('inventario') }}"
+                                    class="btn btn-outline-secondary"
+                                >
+                                    Cancelar
+                                </a>
+
+                            </div>
+
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+
+    /* ============================= */
+    /* MENÚ INVENTARIO */
+    /* ============================= */
+
+    function mostrarInventario(event) {
+
+        event.preventDefault();
+
+
+        const opciones =
+            document.getElementById(
+                "opcionesInventario"
+            );
+
+
+        const flecha =
+            document.getElementById(
+                "flechaInventario"
+            );
+
+
+        if (
+            opciones.style.display === "none"
+        ) {
+
+            opciones.style.display =
+                "block";
+
+
+            flecha.textContent =
+                "⌄";
+
+        } else {
+
+            opciones.style.display =
+                "none";
+
+
+            flecha.textContent =
+                "›";
+
+        }
+
+    }
+
+
+
+    /* ============================= */
+    /* PRODUCTOS AGREGADOS */
+    /* ============================= */
+
+    let productosAgregados = [];
+
+
+
+    /* ============================= */
+    /* CAMPOS */
+    /* ============================= */
+
+    const productoInput =
+        document.getElementById("producto");
+
+
+    const resultadosProductos =
+        document.getElementById(
+            "resultadosProductos"
+        );
+
+
+    const opcionesProductos =
+        document.querySelectorAll(
+            ".producto-opcion"
+        );
+
+
+
+    /* ============================= */
+    /* BUSCAR PRODUCTO */
+    /* ============================= */
+
+    productoInput.addEventListener(
+        "input",
+        function() {
+
+            const texto =
+                productoInput.value
+                .toLowerCase()
+                .trim();
+
+
+            if (texto === "") {
+
+                resultadosProductos.style.display =
+                    "none";
+
+
+                productoInput.removeAttribute(
+                    "data-id"
+                );
+
+
+                return;
+
+            }
+
+
+            let hayResultados = false;
+
+
+            opcionesProductos.forEach(
+                function(opcion) {
+
+                    const nombre =
+                        opcion
+                        .getAttribute(
+                            "data-nombre"
+                        )
+                        .toLowerCase();
+
+
+                    const codigo =
+                        opcion
+                        .getAttribute(
+                            "data-id"
+                        )
+                        .toLowerCase();
+
+
+                    const barras =
+                        opcion
+                        .getAttribute(
+                            "data-barras"
+                        )
+                        .toLowerCase();
+
+
+                    if (
+
+                        nombre.startsWith(texto)
+
+                        ||
+
+                        codigo.startsWith(texto)
+
+                        ||
+
+                        (
+                            barras !== ""
+
+                            &&
+
+                            barras.startsWith(texto)
+                        )
+
+                    ) {
+
+                        opcion.style.display =
+                            "block";
+
+
+                        hayResultados =
+                            true;
+
+                    } else {
+
+                        opcion.style.display =
+                            "none";
+
+                    }
+
+                }
+            );
+
+
+            if (hayResultados) {
+
+                resultadosProductos.style.display =
+                    "block";
+
+            } else {
+
+                resultadosProductos.style.display =
+                    "none";
+
+            }
+
+        }
+    );
+
+
+
+    /* ============================= */
+    /* SELECCIONAR PRODUCTO */
+    /* ============================= */
+
+    opcionesProductos.forEach(
+        function(opcion) {
+
+            opcion.addEventListener(
+                "click",
+                function() {
+
+                    const id =
+                        opcion.getAttribute(
+                            "data-id"
+                        );
+
+
+                    const nombre =
+                        opcion.getAttribute(
+                            "data-nombre"
+                        );
+
+
+                    productoInput.value =
+                        nombre;
+
+
+                    productoInput.setAttribute(
+                        "data-id",
+                        id
+                    );
+
+
+                    resultadosProductos.style.display =
+                        "none";
+
+                }
+            );
+
+        }
+    );
+
+
+
+    /* ============================= */
+    /* AGREGAR PRODUCTO */
+    /* ============================= */
+
+    function agregarProducto() {
+
+
+        const productoId =
+            productoInput.getAttribute(
+                "data-id"
+            );
+
+
+        const productoNombre =
+            productoInput.value.trim();
+
+
+        const cantidadInput =
+            document.getElementById(
+                "cantidad"
+            );
+
+
+        const bodegaSelect =
+            document.getElementById(
+                "cod_bod"
+            );
+
+
+        const cantidad =
+            cantidadInput.value;
+
+
+        const bodegaId =
+            bodegaSelect.value;
+
+
+        const bodegaNombre =
+            bodegaSelect.options[
+                bodegaSelect.selectedIndex
+            ].text;
+
+
+
+        if (
+            !productoId
+            ||
+            productoNombre === ""
+        ) {
+
+            alert(
+                "Busca y selecciona un producto de la lista."
+            );
+
+            return;
+
+        }
+
+
+
+        if (
+            cantidad === ""
+            ||
+            Number(cantidad) === 0
+        ) {
+
+            alert(
+                "La cantidad no puede ser 0."
+            );
+
+            cantidadInput.focus();
+
+            return;
+
+        }
+
+
+
+        if (bodegaId === "") {
+
+            alert(
+                "Selecciona una bodega."
+            );
+
+            bodegaSelect.focus();
+
+            return;
+
+        }
+
+
+
+        productosAgregados.push({
+
+            id: productoId,
+
+            nombre: productoNombre,
+
+            cantidad: cantidad,
+
+            bodegaId: bodegaId,
+
+            bodegaNombre: bodegaNombre
+
+        });
+
+
+
+        mostrarProductos();
+
+
+
+        productoInput.value = "";
+
+
+        productoInput.removeAttribute(
+            "data-id"
+        );
+
+
+        cantidadInput.value = "";
+
+
+        bodegaSelect.value = "";
+
+    }
+
+
+
+    /* ============================= */
+    /* MOSTRAR PRODUCTOS */
+    /* ============================= */
+
+    function mostrarProductos() {
+
+
+        const lista =
+            document.getElementById(
+                "listaAgregados"
+            );
+
+
+        const datos =
+            document.getElementById(
+                "datosProductos"
+            );
+
+
+        lista.innerHTML = "";
+
+
+        datos.innerHTML = "";
+
+
+
+        if (
+            productosAgregados.length === 0
+        ) {
+
+            lista.innerHTML = `
+                <div class="text-muted">
+                    No hay productos agregados.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+
+        /* ENCABEZADOS */
+
+        const encabezado =
+            document.createElement(
+                "div"
+            );
+
+
+        encabezado.className =
+            "row fw-bold border-bottom pb-2 mb-2";
+
+
+        encabezado.innerHTML = `
+
+            <div class="col-md-4">
+                Producto
+            </div>
+
+            <div class="col-md-2">
+                Cantidad
+            </div>
+
+            <div class="col-md-4">
+                Bodega
+            </div>
+
+            <div class="col-md-2">
+                Acción
+            </div>
+
+        `;
+
+
+        lista.appendChild(
+            encabezado
+        );
+
+
+
+        /* PRODUCTOS */
+
+        productosAgregados.forEach(
+            function(
+                producto,
+                indice
+            ) {
+
+
+                const fila =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                fila.className =
+                    "row align-items-center border-bottom p-2";
+
+
+                fila.innerHTML = `
+
+                    <div class="col-md-4">
+
+                        <strong>
+                            ${producto.nombre}
+                        </strong>
+
+                        <br>
+
+                        <small class="text-muted">
+                            Código: ${producto.id}
+                        </small>
+
+                    </div>
+
+
+                    <div class="col-md-2">
+
+                        ${
+                            Number(
+                                producto.cantidad
+                            ) > 0
+                            ? "+" + producto.cantidad
+                            : producto.cantidad
+                        }
+
+                    </div>
+
+
+                    <div class="col-md-4">
+                        ${producto.bodegaNombre}
+                    </div>
+
+
+                    <div class="col-md-2">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="eliminarProducto(${indice})"
+                        >
+                            Eliminar
+                        </button>
+
+                    </div>
+
+                `;
+
+
+                lista.appendChild(
+                    fila
+                );
+
+
+
+                /* INPUT PRODUCTO */
+
+                const inputProducto =
+                    document.createElement(
+                        "input"
+                    );
+
+
+                inputProducto.type =
+                    "hidden";
+
+
+                inputProducto.name =
+                    "productos[]";
+
+
+                inputProducto.value =
+                    producto.id;
+
+
+
+                /* INPUT CANTIDAD */
+
+                const inputCantidad =
+                    document.createElement(
+                        "input"
+                    );
+
+
+                inputCantidad.type =
+                    "hidden";
+
+
+                inputCantidad.name =
+                    "cantidades[]";
+
+
+                inputCantidad.value =
+                    producto.cantidad;
+
+
+
+                /* INPUT BODEGA */
+
+                const inputBodega =
+                    document.createElement(
+                        "input"
+                    );
+
+
+                inputBodega.type =
+                    "hidden";
+
+
+                inputBodega.name =
+                    "bodegas[]";
+
+
+                inputBodega.value =
+                    producto.bodegaId;
+
+
+
+                datos.appendChild(
+                    inputProducto
+                );
+
+
+                datos.appendChild(
+                    inputCantidad
+                );
+
+
+                datos.appendChild(
+                    inputBodega
+                );
+
+            }
+        );
+
+    }
+
+
+
+    /* ============================= */
+    /* ELIMINAR PRODUCTO */
+    /* ============================= */
+
+    function eliminarProducto(
+        indice
+    ) {
+
+        productosAgregados.splice(
+            indice,
+            1
+        );
+
+
+        mostrarProductos();
+
+    }
+
+
+
+    /* ============================= */
+    /* VALIDAR FORMULARIO */
+    /* ============================= */
+
+    document
+        .getElementById("formAjuste")
+        .addEventListener(
+            "submit",
+            function(event) {
+
+                if (
+                    productosAgregados.length === 0
+                ) {
+
+                    event.preventDefault();
+
+
+                    alert(
+                        "Debes añadir al menos un producto."
+                    );
+
+                }
+
+            }
+        );
+
+
+
+    /* ============================= */
+    /* OCULTAR RESULTADOS */
+    /* ============================= */
+
+    document.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+
+                !productoInput.contains(
+                    event.target
+                )
+
+                &&
+
+                !resultadosProductos.contains(
+                    event.target
+                )
+
+            ) {
+
+                resultadosProductos.style.display =
+                    "none";
+
+            }
+
+        }
+    );
+
+</script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+
+</body>
+
+</html>

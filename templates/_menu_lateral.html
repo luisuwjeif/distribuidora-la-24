@@ -1,0 +1,104 @@
+
+{# Menú lateral compartido. Muestra solo lo que el rol puede usar. #}
+{% set es_admin = session.get('rol') == 'Administrador' %}
+{% set ep = request.endpoint %}
+
+<aside class="col-md-2 menu-lateral">
+
+    <h5 class="titulo-menu">Menú</h5>
+
+    <a href="{{ url_for('menu') }}"
+       class="{{ 'activo' if ep == 'menu' }}">Inicio</a>
+
+    <a href="{{ url_for('productos') }}"
+       class="{{ 'activo' if ep in ('productos', 'actualizar_productos') }}">Productos</a>
+
+    <a href="{{ url_for('clientes') }}"
+       class="{{ 'activo' if ep in ('clientes', 'editar_cliente') }}">Clientes</a>
+
+    {% if es_admin %}
+    <a href="{{ url_for('proveedores') }}"
+       class="{{ 'activo' if ep in ('proveedores', 'editar_proveedor') }}">Proveedores</a>
+    {% endif %}
+
+    {% set en_inventario = ep in ('consultar_inventario', 'ajuste_inventario', 'entrada_mercancia', 'inventario') %}
+
+    <a href="#" onclick="mostrarInventario(event)"
+       class="{{ 'activo' if en_inventario }}">
+        Inventario
+        <span id="flechaInventario">{{ '⌄' if en_inventario else '›' }}</span>
+    </a>
+
+    <div id="opcionesInventario"
+         class="opciones-inventario{{ ' abierto' if en_inventario }}">
+        <a href="{{ url_for('ajuste_inventario') }}">Ajuste de inventario</a>
+        <a href="{{ url_for('entrada_mercancia') }}">Entrada de mercancía</a>
+    </div>
+
+    {% if es_admin %}
+    <a href="{{ url_for('bodegas') }}"
+       class="{{ 'activo' if ep in ('bodegas', 'editar_bodega') }}">Bodegas</a>
+    {% endif %}
+
+    <a href="{{ url_for('ventas') }}"
+       class="{{ 'activo' if ep == 'ventas' }}">Punto de venta</a>
+
+    {% if es_admin %}
+
+    {% set en_informes = ep in ('informes', 'informe_inventario', 'informe_clientes', 'informe_proveedores') %}
+
+    <a href="#" onclick="mostrarInformes(event)"
+       class="{{ 'activo' if en_informes }}">
+        Informes
+        <span id="flechaInformes">{{ '⌄' if en_informes else '›' }}</span>
+    </a>
+
+
+<div id="opcionesInformes"
+     class="opciones-inventario{{ ' abierto' if en_informes }}">
+    <a href="{{ url_for('informes') }}">Ventas</a>
+    <a href="{{ url_for('informe_clientes') }}">Clientes</a>
+    <a href="{{ url_for('informe_proveedores') }}">Proveedores</a>
+    <a href="{{ url_for('informe_inventario') }}">Bodegas e inventario</a>
+</div>
+
+
+    <a href="{{ url_for('usuarios') }}"
+       class="{{ 'activo' if ep in ('usuarios', 'editar_usuario') }}">Administración</a>
+
+    {% endif %}
+
+</aside>
+
+<style>
+    .opciones-inventario {
+        display: none;
+        padding-left: 15px;
+    }
+
+    .opciones-inventario.abierto {
+        display: block;
+    }
+</style>
+
+<script>
+    function mostrarInventario(event) {
+        event.preventDefault();
+
+        const opciones = document.getElementById("opcionesInventario");
+        const flecha = document.getElementById("flechaInventario");
+
+        const abierto = opciones.classList.toggle("abierto");
+        flecha.textContent = abierto ? "⌄" : "›";
+    }
+
+    function mostrarInformes(event) {
+        event.preventDefault();
+
+        const opciones = document.getElementById("opcionesInformes");
+        const flecha = document.getElementById("flechaInformes");
+
+        const abierto = opciones.classList.toggle("abierto");
+        flecha.textContent = abierto ? "⌄" : "›";
+    }
+</script>

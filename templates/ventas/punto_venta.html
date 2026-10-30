@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Punto de venta - Salsamentaria</title>
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS del proyecto -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/productos.css') }}"
+    >
+
+  <style>
+    .lista-productos {
+        max-height: 62vh;
+        overflow-y: auto;
+    }
+
+    .lista-productos tr {
+        cursor: pointer;
+    }
+
+    .carrito {
+        max-height: 46vh;
+        overflow-y: auto;
+    }
+
+    .pestana-cerrar {
+        margin-left: .5rem;
+        opacity: .6;
+    }
+
+    .pestana-cerrar:hover {
+        opacity: 1;
+    }
+
+    .total {
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    /* Tarjetas ligeramente transparentes */
+    .punto-venta .card {
+        background-color: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Encabezados de las tarjetas */
+    .punto-venta .card-header {
+        background-color: rgba(33, 37, 41, 0.95);
+        color: white;
+    }
+
+    /* Pestañas de las ventas */
+    .punto-venta .nav-tabs .nav-link {
+        background-color: rgba(255, 255, 255, 0.70);
+        color: #333;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 6px 6px 0 0;
+        margin-right: 4px;
+    }
+
+    /* Pestaña seleccionada */
+    .punto-venta .nav-tabs .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.95);
+        color: #212529;
+        font-weight: 600;
+        border-bottom-color: transparent;
+    }
+
+    /* Cuando pasas el cursor por una pestaña */
+    .punto-venta .nav-tabs .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.90);
+        color: #212529;
+    }
+
+    /* Campos de búsqueda y selección */
+    .punto-venta .form-control,
+    .punto-venta .form-select {
+        background-color: rgba(255, 255, 255, 0.94);
+    }
+
+    /* Encabezado de la tabla */
+    .punto-venta .table th {
+        white-space: nowrap;
+        background-color: rgba(240, 242, 244, 0.92);
+    }
+
+    /* Total de la venta */
+    .punto-venta .total {
+        color: #212529;
+    }
+</style>
+</head>
+
+<body
+    data-clientes='{{ clientes|tojson }}'
+    data-productos='{{ productos|tojson }}'
+    data-max-descuento='{{ max_descuento }}'
+>
+
+<!-- BARRA SUPERIOR -->
+
+<nav class="navbar navbar-dark barra-superior">
+    <div class="container-fluid">
+
+        <span class="navbar-brand mb-0 h1">
+            Salsamentaria
+        </span>
+
+        <a
+            href="{{ url_for('logout') }}"
+            class="btn btn-outline-light"
+        >
+            Cerrar sesión
+        </a>
+
+    </div>
+</nav>
+
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- MENÚ LATERAL -->
+
+        {% include "_menu_lateral.html" %}
+
+
+        <!-- CONTENIDO PRINCIPAL -->
+
+        <main class="col-md-10 contenido">
+
+            <div class="container-fluid py-4 punto-venta">
+
+                <!-- TÍTULO -->
+
+                <div class="mb-4">
+
+                    <h1>
+                        Punto de venta
+                    </h1>
+
+                </div>
+
+
+                <!-- PESTAÑAS DE VENTAS -->
+
+                <ul
+                    class="nav nav-tabs"
+                    id="pestanas"
+                ></ul>
+
+
+                <div class="row g-3 mt-0">
+
+                    <!-- CLIENTE Y PRODUCTOS -->
+
+                    <div class="col-lg-7">
+
+                        <div class="card shadow-sm border-top-0 rounded-top-0">
+
+                            <div class="card-body">
+
+                                <label
+                                    class="form-label fw-semibold"
+                                    for="cliente"
+                                >
+                                    Cliente
+                                </label>
+
+                                <select
+                                    id="cliente"
+                                    class="form-select mb-3"
+                                ></select>
+
+
+                                <div id="panelProductos">
+
+                                    <label
+                                        for="buscar"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Buscar producto
+                                    </label>
+
+                                    <input
+                                        type="search"
+                                        id="buscar"
+                                        class="form-control mb-2"
+                                        placeholder="Nombre o código de barras..."
+                                    >
+
+                                    <div class="lista-productos border rounded">
+
+                                        <table class="table table-hover table-sm mb-0">
+
+                                            <thead class="table-light sticky-top">
+
+                                                <tr>
+                                                    <th>Producto</th>
+
+                                                    <th class="text-end">
+                                                        Precio
+                                                    </th>
+
+                                                    <th class="text-end">
+                                                        Stock
+                                                    </th>
+
+                                                    <th style="width: 100px;">
+                                                        Cantidad
+                                                    </th>
+
+                                                    <th style="width: 90px;"></th>
+                                                </tr>
+
+                                            </thead>
+
+                                            <tbody id="productos"></tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+
+                                <p
+                                    id="avisoCliente"
+                                    class="text-muted mb-0"
+                                >
+                                    Selecciona un cliente para ver la lista de productos.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CARRITO -->
+
+                    <div class="col-lg-5">
+
+                        <div class="card shadow-sm">
+
+                            <div
+                                class="card-header fw-semibold"
+                                id="tituloVenta"
+                            >
+                                Venta
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="carrito">
+
+                                    <table class="table table-sm align-middle">
+
+                                        <thead>
+
+                                            <tr>
+                                                <th>Producto</th>
+
+                                                <th style="width: 90px;">
+                                                    Cant.
+                                                </th>
+
+                                                <th class="text-end">
+                                                    Subtotal
+                                                </th>
+
+                                                <th style="width: 34px;"></th>
+                                            </tr>
+
+                                        </thead>
+
+                                        <tbody id="carrito"></tbody>
+
+                                    </table>
+
+
+                                    <p
+                                        id="carritoVacio"
+                                        class="text-muted text-center my-4"
+                                    >
+                                        Aún no hay productos en esta venta.
+                                    </p>
+
+                                </div>
+
+
+                                <hr>
+
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <span class="fs-5">
+                                        Total
+                                    </span>
+
+                                    <span
+                                        class="total"
+                                        id="total"
+                                    >
+                                        $0
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    id="mensaje"
+                                    class="alert d-none py-2"
+                                    role="alert"
+                                ></div>
+
+
+                                <div class="d-grid gap-2">
+
+                                    <button
+                                        id="cobrar"
+                                        class="btn btn-dark btn-lg"
+                                    >
+                                        Guardar venta
+                                    </button>
+
+                                    <button
+                                        id="vaciar"
+                                        class="btn btn-outline-danger btn-sm"
+                                    >
+                                        Vaciar esta venta
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- JAVASCRIPT DEL MENÚ -->
+
+<script>
+    function mostrarInventario(event) {
+
+        event.preventDefault();
+
+        const opciones =
+            document.getElementById("opcionesInventario");
+
+        const flecha =
+            document.getElementById("flechaInventario");
+
+        if (opciones.style.display === "none") {
+
+            opciones.style.display = "block";
+            flecha.textContent = "⌄";
+
+        } else {
+
+            opciones.style.display = "none";
+            flecha.textContent = "›";
+
+        }
+    }
+</script>
+
+
+<!-- JAVASCRIPT DEL PUNTO DE VENTA -->
+
+<script>
+const CLIENTES = JSON.parse(document.body.dataset.clientes);
+let PRODUCTOS = JSON.parse(document.body.dataset.productos);
+
+const CLAVE = "pos_ventas_abiertas";
+// Descuento máximo (en %) que este usuario puede aplicar a un producto.
+const MAX_DESC = Number(document.body.dataset.maxDescuento || 0);
+const $ = (id) => document.getElementById(id);
+
+const dinero = (n) =>
+    "$" + Number(n).toLocaleString("es-CO", {
+        maximumFractionDigits: 0
+    });
+
+
+/* ESTADO DE LAS VENTAS */
+
+let estado = cargarEstado();
+
+function cargarEstado() {
+
+    try {
+
+        const guardado = JSON.parse(localStorage.getItem(CLAVE));
+
+        if (
+            guardado &&
+            guardado.ventas &&
+            guardado.ventas.length
+        ) {
+            return guardado;
+        }
+
+    } catch (e) {}
+
+    return {
+        ventas: [nuevaVenta(1)],
+        activa: 0,
+        contador: 1
+    };
+}
+
+
+function guardarEstado() {
+
+    try {
+        localStorage.setItem(CLAVE, JSON.stringify(estado));
+    } catch (e) {}
+
+}
+
+
+function nuevaVenta(n) {
+
+    return {
+        nombre: "Venta " + n,
+        cod_cli: "",
+        items: []
+    };
+
+}
+
+
+const ventaActiva = () => estado.ventas[estado.activa];
+
+const stockDe = (cod) =>
+    (PRODUCTOS.find(p => String(p.cod_prod) === String(cod)) || { stock: 0 }).stock;
+
+// Valor de un renglón ya con su descuento (en %).
+const subtotalDe = (i) =>
+    Math.round(i.precio * i.cantidad * (1 - (i.descuento || 0) / 100) * 100) / 100;
+
+const totalDe = (v) =>
+    v.items.reduce((s, i) => s + subtotalDe(i), 0);
+
+
+/* PESTAÑAS */
+
+function pintarPestanas() {
+
+    const ul = $("pestanas");
+    ul.replaceChildren();
+
+    estado.ventas.forEach((v, i) => {
+
+        const li = document.createElement("li");
+        li.className = "nav-item";
+
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className =
+            "nav-link" + (i === estado.activa ? " active" : "");
+
+        a.textContent =
+            v.nombre + (v.items.length ? " · " + dinero(totalDe(v)) : "");
+
+        a.onclick = (e) => {
+            e.preventDefault();
+            estado.activa = i;
+            pintar();
+        };
+
+        if (estado.ventas.length > 1) {
+
+            const x = document.createElement("span");
+            x.className = "pestana-cerrar";
+            x.textContent = "✕";
+            x.title = "Cerrar esta venta";
+
+            x.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                cerrarVenta(i);
+            };
+
+            a.appendChild(x);
+
+        }
+
+        li.appendChild(a);
+        ul.appendChild(li);
+
+    });
+
+
+    const mas = document.createElement("li");
+    mas.className = "nav-item";
+
+    const b = document.createElement("a");
+    b.href = "#";
+    b.className = "nav-link";
+    b.textContent = "+ Nueva venta";
+
+    b.onclick = (e) => {
+
+        e.preventDefault();
+
+        estado.contador++;
+
+        estado.ventas.push(nuevaVenta(estado.contador));
+
+        estado.activa = estado.ventas.length - 1;
+
+        pintar();
+
+    };
+
+    mas.appendChild(b);
+    ul.appendChild(mas);
+
+}
+
+
+function cerrarVenta(i) {
+
+    const v = estado.ventas[i];
+
+    if (
+        v.items.length &&
+        !confirm("Esta venta tiene productos sin guardar. ¿Cerrarla?")
+    ) {
+        return;
+    }
+
+    estado.ventas.splice(i, 1);
+
+    if (estado.ventas.length === 0) {
+
+        estado.contador++;
+        estado.ventas.push(nuevaVenta(estado.contador));
+        estado.activa = 0;
+
+    } else {
+
+        estado.activa = Math.min(
+            estado.activa,
+            estado.ventas.length - 1
+        );
+
+    }
+
+    pintar();
+
+}
+
+
+/* CLIENTES */
+
+function pintarClientes() {
+
+    const sel = $("cliente");
+    sel.replaceChildren();
+
+    const base = document.createElement("option");
+    base.value = "";
+    base.textContent = "— Selecciona un cliente —";
+
+    sel.appendChild(base);
+
+    CLIENTES.forEach(c => {
+
+        const o = document.createElement("option");
+
+        o.value = c.cod_cli;
+        o.textContent = c.nombre;
+
+        sel.appendChild(o);
+
+    });
+
+    sel.value = ventaActiva().cod_cli;
+
+}
+
+
+$("cliente").onchange = (e) => {
+
+    ventaActiva().cod_cli = e.target.value;
+
+    pintar();
+
+};
+
+
+/* PRODUCTOS */
+
+function pintarProductos() {
+
+    const hayCliente = !!ventaActiva().cod_cli;
+
+    $("panelProductos").classList.toggle("d-none", !hayCliente);
+    $("avisoCliente").classList.toggle("d-none", hayCliente);
+
+    if (!hayCliente) return;
+
+    const q = $("buscar").value.trim().toLowerCase();
+
+    const tbody = $("productos");
+    tbody.replaceChildren();
+
+    PRODUCTOS
+        .filter(p => {
+
+            const nombre = String(p.nombre || "").toLowerCase();
+            const barras = String(p.barras || "").toLowerCase();
+
+            return !q ||
+                nombre.includes(q) ||
+                barras.includes(q);
+
+        })
+        .forEach(p => {
+
+            const tr = document.createElement("tr");
+
+            const celda = (txt, cls) => {
+
+                const td = document.createElement("td");
+
+                td.textContent = txt;
+
+                if (cls) td.className = cls;
+
+                tr.appendChild(td);
+
+                return td;
+
+            };
+
+
+            celda(p.nombre);
+            celda(dinero(p.precio), "text-end");
+            celda(p.stock + " " + p.unidad, "text-end");
+
+
+            const tdCant = document.createElement("td");
+
+            const inp = document.createElement("input");
+
+            inp.type = "number";
+            inp.min = 1;
+            inp.max = p.stock;
+            inp.value = 1;
+            inp.className = "form-control form-control-sm";
+
+            inp.onclick = (e) => e.stopPropagation();
+
+            inp.onkeydown = (e) => {
+
+                if (e.key === "Enter") {
+                    agregar(p, inp);
+                }
+
+            };
+
+            tdCant.appendChild(inp);
+            tr.appendChild(tdCant);
+
+
+            const tdBtn = document.createElement("td");
+
+            const btn = document.createElement("button");
+
+            btn.type = "button";
+            btn.className = "btn btn-dark btn-sm w-100";
+            btn.textContent = "Agregar";
+
+            btn.onclick = (e) => {
+
+                e.stopPropagation();
+                agregar(p, inp);
+
+            };
+
+            tdBtn.appendChild(btn);
+            tr.appendChild(tdBtn);
+
+
+            tr.onclick = () => agregar(p, inp);
+
+            tbody.appendChild(tr);
+
+        });
+
+}
+
+
+$("buscar").oninput = pintarProductos;
+
+
+/* AGREGAR AL CARRITO */
+
+function agregar(p, inp) {
+
+    const cant = parseInt(inp.value, 10);
+
+    if (!cant || cant <= 0) {
+        return avisar(
+            "La cantidad debe ser mayor que 0.",
+            "warning"
+        );
+    }
+
+    const v = ventaActiva();
+
+    const existente = v.items.find(
+        i => String(i.cod_prod) === String(p.cod_prod)
+    );
+
+    const nueva =
+        (existente ? existente.cantidad : 0) + cant;
+
+    if (nueva > p.stock) {
+
+        return avisar(
+            "Solo hay " + p.stock + " de " + p.nombre + ".",
+            "warning"
+        );
+
+    }
+
+    if (existente) {
+
+        existente.cantidad = nueva;
+
+    } else {
+
+        v.items.push({
+            cod_prod: p.cod_prod,
+            nombre: p.nombre,
+            precio: Number(p.precio),
+            cantidad: cant,
+            descuento: 0
+        });
+
+    }
+
+    inp.value = 1;
+
+    limpiarAviso();
+
+    pintar();
+
+}
+
+
+/* CARRITO */
+
+function pintarCarrito() {
+
+    const v = ventaActiva();
+
+    const tbody = $("carrito");
+
+    tbody.replaceChildren();
+
+    $("tituloVenta").textContent = v.nombre;
+
+    $("carritoVacio").classList.toggle(
+        "d-none",
+        v.items.length > 0
+    );
+
+
+    v.items.forEach((it, idx) => {
+
+        const tr = document.createElement("tr");
+
+
+        const tdN = document.createElement("td");
+
+        tdN.textContent = it.nombre;
+
+        const peq = document.createElement("div");
+
+        peq.className = "text-muted small";
+        peq.textContent = dinero(it.precio) + " c/u";
+
+        tdN.appendChild(peq);
+
+        if (MAX_DESC > 0) {
+            const fila = document.createElement("div");
+            fila.className = "d-flex align-items-center gap-1 mt-1";
+
+            const rotulo = document.createElement("span");
+            rotulo.className = "text-muted small";
+            rotulo.textContent = "Desc. %";
+
+            const d = document.createElement("input");
+            d.type = "number";
+            d.min = 0;
+            d.max = MAX_DESC;
+            d.step = "0.5";
+            d.value = it.descuento || 0;
+            d.className = "form-control form-control-sm";
+            d.style.width = "70px";
+            d.onchange = () => {
+                let n = parseFloat(d.value);
+                if (isNaN(n) || n < 0) n = 0;
+                if (n > MAX_DESC) {
+                    avisar(
+                        "El descuento máximo permitido es " + MAX_DESC + "%.",
+                        "warning"
+                    );
+                    n = MAX_DESC;
+                }
+                it.descuento = n;
+                pintar();
+            };
+
+            fila.appendChild(rotulo);
+            fila.appendChild(d);
+            tdN.appendChild(fila);
+        }
+        tr.appendChild(tdN);
+
+
+        const tdC = document.createElement("td");
+
+        const inp = document.createElement("input");
+
+        inp.type = "number";
+        inp.min = 1;
+        inp.max = stockDe(it.cod_prod);
+        inp.value = it.cantidad;
+        inp.className = "form-control form-control-sm";
+
+        inp.onchange = () => {
+
+            const n = parseInt(inp.value, 10);
+
+            if (!n || n <= 0) {
+
+                v.items.splice(idx, 1);
+
+            } else if (n > stockDe(it.cod_prod)) {
+
+                avisar(
+                    "Solo hay " + stockDe(it.cod_prod) +
+                    " de " + it.nombre + ".",
+                    "warning"
+                );
+
+                it.cantidad = stockDe(it.cod_prod);
+
+                if (it.cantidad <= 0) {
+                    v.items.splice(idx, 1);
+                }
+
+            } else {
+
+                it.cantidad = n;
+
+            }
+
+            pintar();
+
+        };
+
+        tdC.appendChild(inp);
+        tr.appendChild(tdC);
+
+
+        const tdS = document.createElement("td");
+
+        tdS.className = "text-end";
+        tdS.textContent = dinero(subtotalDe(it));
+
+        tr.appendChild(tdS);
+
+
+        const tdX = document.createElement("td");
+
+        const x = document.createElement("button");
+
+        x.type = "button";
+        x.className = "btn btn-sm btn-outline-danger";
+        x.textContent = "✕";
+
+        x.onclick = () => {
+
+            v.items.splice(idx, 1);
+
+            pintar();
+
+        };
+
+        tdX.appendChild(x);
+        tr.appendChild(tdX);
+
+        tbody.appendChild(tr);
+
+    });
+
+
+    $("total").textContent = dinero(totalDe(v));
+
+    $("cobrar").disabled = !(
+        v.cod_cli && v.items.length
+    );
+
+}
+
+
+$("vaciar").onclick = () => {
+
+    const v = ventaActiva();
+
+    if (
+        v.items.length &&
+        !confirm("¿Quitar todos los productos de esta venta?")
+    ) {
+        return;
+    }
+
+    v.items = [];
+
+    pintar();
+
+};
+
+
+/* GUARDAR VENTA */
+
+$("cobrar").onclick = async () => {
+
+    const v = ventaActiva();
+
+    const boton = $("cobrar");
+
+    boton.disabled = true;
+
+    try {
+
+        const r = await fetch("/pos/guardar", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                cod_cli: v.cod_cli,
+
+                items: v.items.map(i => ({
+                    cod_prod: i.cod_prod,
+                    cantidad: i.cantidad,
+                    descuento: i.descuento || 0
+                }))
+
+            })
+
+        });
+
+
+        if (r.redirected || r.status === 401) {
+
+            location.href = "/";
+            return;
+
+        }
+
+
+        const datos = await r.json();
+
+
+        if (!r.ok || !datos.ok) {
+
+            avisar(
+                datos.error || "No se pudo guardar la venta.",
+                "danger"
+            );
+
+            await refrescarProductos();
+
+            pintar();
+
+            return;
+
+        }
+
+
+        avisarVentaGuardada(datos);
+
+
+        if (estado.ventas.length > 1) {
+
+            estado.ventas.splice(estado.activa, 1);
+
+            estado.activa = Math.min(
+                estado.activa,
+                estado.ventas.length - 1
+            );
+
+        } else {
+
+            estado.contador++;
+
+            estado.ventas = [
+                nuevaVenta(estado.contador)
+            ];
+
+            estado.activa = 0;
+
+        }
+
+
+        await refrescarProductos();
+
+        pintar();
+
+    } catch (e) {
+
+        avisar(
+            "No se pudo completar la solicitud al servidor.",
+            "danger"
+        );
+
+    } finally {
+
+        pintarCarrito();
+
+    }
+
+};
+
+
+/* ACTUALIZAR STOCK */
+
+async function refrescarProductos() {
+
+    try {
+
+        const r = await fetch("/pos/productos");
+
+        if (r.ok) {
+
+            PRODUCTOS = await r.json();
+
+        }
+
+    } catch (e) {}
+
+
+    estado.ventas.forEach(v => {
+
+        v.items = v.items.filter(
+            i => stockDe(i.cod_prod) > 0
+        );
+
+        v.items.forEach(i => {
+
+            i.cantidad = Math.min(
+                i.cantidad,
+                stockDe(i.cod_prod)
+            );
+
+        });
+
+    });
+
+}
+
+
+/* MENSAJES */
+
+function avisar(texto, tipo) {
+
+    const m = $("mensaje");
+
+    m.className = "alert py-2 alert-" + tipo;
+    m.textContent = texto;
+
+}
+
+
+/* AVISO DE VENTA GUARDADA, CON ACCESO A LA FACTURA */
+
+function avisarVentaGuardada(datos) {
+
+    const m = $("mensaje");
+
+    m.className = "alert py-2 alert-success";
+    m.replaceChildren();
+
+    const texto = document.createElement("div");
+    texto.className = "mb-2";
+    texto.textContent =
+        "Venta #" + datos.cod_ven +
+        " guardada. Total " + dinero(datos.total) + ".";
+    m.appendChild(texto);
+
+    const enlace = (rotulo, url, clase) => {
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.className = "btn btn-sm me-2 " + clase;
+        a.textContent = rotulo;
+        return a;
+    };
+
+    m.appendChild(
+        enlace("Ver factura", "/factura/" + datos.cod_ven, "btn-dark")
+    );
+
+    m.appendChild(
+        enlace(
+            "Imprimir",
+            "/factura/" + datos.cod_ven + "?imprimir=1",
+            "btn-outline-dark"
+        )
+    );
+
+}
+
+
+function limpiarAviso() {
+
+    $("mensaje").className = "alert d-none py-2";
+
+}
+
+
+/* DIBUJAR TODO */
+
+function pintar() {
+
+    guardarEstado();
+
+    pintarPestanas();
+
+    pintarClientes();
+
+    pintarProductos();
+
+    pintarCarrito();
+
+}
+
+
+refrescarProductos().then(pintar);
+
+</script>
+
+
+<!-- BOOTSTRAP JS -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+</body>
+</html>

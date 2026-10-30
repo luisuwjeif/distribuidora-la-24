@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Productos - Salsamentaria</title>
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS propio -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/productos.css') }}"
+    >
+
+</head>
+
+<body>
+
+<!-- ============================== -->
+<!-- BARRA SUPERIOR -->
+<!-- ============================== -->
+
+<nav class="navbar navbar-dark barra-superior">
+
+    <div class="container-fluid">
+
+        <span class="navbar-brand mb-0 h1">
+            Salsamentaria
+        </span>
+
+        <a
+            href="{{ url_for('logout') }}"
+            class="btn btn-outline-light"
+        >
+            Cerrar sesión
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container-fluid">
+
+    <div class="row">
+
+
+        <!-- ============================== -->
+        <!-- MENÚ LATERAL -->
+        <!-- ============================== -->
+
+        {% include "_menu_lateral.html" %}
+
+
+
+        <!-- ============================== -->
+        <!-- CONTENIDO -->
+        <!-- ============================== -->
+
+        <main class="col-md-10 contenido">
+
+            <div class="container-fluid">
+
+
+                <!-- ============================== -->
+                <!-- MENSAJES -->
+                <!-- ============================== -->
+
+                {% with mensajes = get_flashed_messages(with_categories=true) %}
+
+                    {% if mensajes %}
+
+                        {% for categoria, mensaje in mensajes %}
+
+                            <div
+                                class="alert alert-{{ categoria }} alert-dismissible fade show"
+                                role="alert"
+                            >
+
+                                {{ mensaje }}
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Cerrar"
+                                ></button>
+
+                            </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+
+                <h1>
+                    Gestión de productos
+                </h1>
+
+
+
+<!-- ============================== -->
+                <!-- ACTUALIZAR PRODUCTO -->
+                <!-- ============================== -->
+
+                <div class="card tarjeta mb-4">
+
+                    <div class="card-body">
+
+                        <a
+                            href="{{ url_for('actualizar_productos') }}"
+                            class="btn btn-dark"
+                        >
+                            Actualizar producto
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ============================== -->
+                <!-- REGISTRAR PRODUCTO -->
+                <!-- ============================== -->
+
+                <div class="card tarjeta mb-4">
+
+                    <div class="card-body">
+
+                        <h4 class="mb-4">
+                            Añadir nuevo producto
+                        </h4>
+
+
+                        <form
+                            action="{{ url_for('agregar_producto') }}"
+                            method="POST"
+                        >
+
+
+                            <!-- NOMBRE -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Nombre del producto
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="nombre"
+                                    class="form-control"
+                                    required
+                                >
+
+                            </div>
+
+
+
+                            <!-- CÓDIGO DE BARRAS -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Código de barras
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="codigo_barras"
+                                    class="form-control"
+                                    maxlength="50"
+                                >
+
+                            </div>
+
+
+
+                            <!-- GRUPO -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Grupo
+                                </label>
+
+                                <select
+                                    name="grupo"
+                                    class="form-select"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
+
+                                    <option value="Alimento">
+                                        Alimento
+                                    </option>
+
+                                    <option value="Bebida">
+                                        Bebida
+                                    </option>
+
+                                    <option value="Desechable">
+                                        Desechable
+                                    </option>
+
+                                    <option value="Frutas">
+                                        Frutas
+                                    </option>
+
+                                    <option value="Otros">
+                                        Otros
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+
+                            <!-- CLASIFICACIÓN -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Clasificación
+                                </label>
+
+                                <select
+                                    name="clasificacion"
+                                    class="form-select"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
+
+                                    <option value="Producción">
+                                        Producción
+                                    </option>
+
+                                    <option value="Venta directa">
+                                        Venta directa
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+
+                            <!-- UNIDAD -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Unidad de medida
+                                </label>
+
+                                <select
+                                    name="unidad"
+                                    class="form-select"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Seleccionar
+                                    </option>
+
+                                    <option value="Kilogramo">
+                                        Kilogramo
+                                    </option>
+
+                                    <option value="Unidad">
+                                        Unidad
+                                    </option>
+
+                                    <option value="Litro">
+                                        Litro
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+
+                            <!-- PRECIO -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Precio de venta
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="precio"
+                                    class="form-control"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                >
+
+                            </div>
+
+
+
+                            <!-- BOTÓN -->
+
+                            <button
+                                type="submit"
+                                class="btn btn-dark"
+                            >
+                                Registrar producto
+                            </button>
+
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
+            <!-- ============================== -->
+            <!-- CONSULTAR PRODUCTOS -->
+            <!-- ============================== -->
+
+
+<!-- ============================== -->
+<!-- JAVASCRIPT -->
+<!-- ============================== -->
+
+<script>
+
+function mostrarInventario(event) {
+
+    event.preventDefault();
+
+    const opciones =
+        document.getElementById("opcionesInventario");
+
+    const flecha =
+        document.getElementById("flechaInventario");
+
+
+    if (opciones.style.display === "none") {
+
+        opciones.style.display = "block";
+
+        flecha.textContent = "⌄";
+
+    } else {
+
+        opciones.style.display = "none";
+
+        flecha.textContent = "›";
+
+    }
+
+}
+
+</script>
+
+
+
+<!-- Bootstrap JavaScript -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Menú - Salsamentaria</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS propio -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+
+    <!-- Animaciones del menú -->
+    <style>
+        /* Animación suave de las tarjetas */
+        .card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        /* Efecto al pasar el mouse por las tarjetas */
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        /* Animación de los botones */
+        .card .btn {
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .card .btn:hover {
+            transform: scale(1.04);
+        }
+
+        /* Animación de los botones superiores */
+        .navbar .btn {
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .navbar .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Respetar la preferencia de movimiento reducido */
+        @media (prefers-reduced-motion: reduce) {
+            .card,
+            .card .btn,
+            .navbar .btn {
+                transition: none;
+            }
+
+            .card:hover,
+            .card .btn:hover,
+            .navbar .btn:hover {
+                transform: none;
+            }
+        }
+    </style>
+
+</head>
+
+<body class="bg-light">
+
+    <!-- Barra superior -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+
+            <a class="navbar-brand fw-bold" href="{{ url_for('menu') }}">
+                Menu De Salsamentaria
+            </a>
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-white-50 small">{{ session.get('nom_usu') }}</span>
+
+                {% if session.get('rol') == 'Administrador' %}
+                <a href="{{ url_for('cambiar_mi_clave') }}" class="btn btn-outline-light btn-sm">
+                    Mi contraseña
+                </a>
+                {% endif %}
+
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
+                    Cerrar sesión
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="container py-5">
+
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+            {% for categoria, mensaje in mensajes %}
+                <div class="alert alert-{{ categoria }} alert-dismissible fade show" role="alert">
+                    {{ mensaje }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="text-center mb-5">
+            <p>
+                Selecciona una opción para continuar.
+            </p>
+        </div>
+
+        <!-- Módulos -->
+        <div class="row g-4 justify-content-center">
+
+            <!-- Productos -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">📦</div>
+                        <h4 class="card-title">Productos</h4>
+                        <a href="/productos" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clientes -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">👥</div>
+                        <h4 class="card-title">Clientes</h4>
+                        <a href="/clientes" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+
+            {% if session.get('rol') == 'Administrador' %}
+            <!-- Proveedores -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">🚚</div>
+                        <h4 class="card-title">Proveedores</h4>
+                        <a href="/proveedores" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Ventas -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">🧾</div>
+                        <h4 class="card-title">Ventas</h4>
+                        <a href="/ventas" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+
+            {% if session.get('rol') == 'Administrador' %}
+            <!-- Historial de ventas -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">🗂️</div>
+                        <h4 class="card-title">Historial de ventas</h4>
+                        <a href="{{ url_for('historial_ventas') }}" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Inventario -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">📊</div>
+                        <h4 class="card-title">Inventario</h4>
+                        <a href="{{ url_for('entrada_mercancia') }}" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+
+            {% if session.get('rol') == 'Administrador' %}
+            <!-- Bodegas -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">🏪</div>
+                        <h4 class="card-title">Bodega</h4>
+                        <a href="/bodegas" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if session.get('rol') == 'Administrador' %}
+            <!-- Informes -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">📈</div>
+                        <h4 class="card-title">Informes</h4>
+                        <a href="/informes" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if session.get('rol') == 'Administrador' %}
+            <!-- Administración -->
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="fs-1 mb-3">🔐</div>
+                        <h4 class="card-title">Administración</h4>
+                        <a href="{{ url_for('usuarios') }}" class="btn btn-dark">Entrar</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Texto inferior -->
+        <div class="text-center mt-5">
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

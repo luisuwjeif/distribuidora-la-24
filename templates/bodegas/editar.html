@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Editar Bodega - Salsamentaria</title>
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS del proyecto -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/productos.css') }}"
+    >
+
+</head>
+
+<body>
+
+
+<!-- ============================= -->
+<!-- BARRA SUPERIOR -->
+<!-- ============================= -->
+
+<nav class="navbar navbar-dark barra-superior">
+
+    <div class="container-fluid">
+
+        <span class="navbar-brand mb-0 h1">
+            Salsamentaria
+        </span>
+
+        <a
+            href="{{ url_for('logout') }}"
+            class="btn btn-outline-light"
+        >
+            Cerrar sesión
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container-fluid">
+
+    <div class="row">
+
+
+        <!-- ============================= -->
+        <!-- MENÚ LATERAL -->
+        <!-- ============================= -->
+
+        {% include "_menu_lateral.html" %}
+
+
+        <!-- ============================= -->
+        <!-- CONTENIDO -->
+        <!-- ============================= -->
+
+        <main class="col-md-10 contenido">
+
+            <div class="container-fluid">
+
+
+                <!-- TÍTULO -->
+
+                <div class="mb-4">
+
+                    <h1>
+                        Editar bodega
+                    </h1>
+
+                    <p class="text-muted mb-0">
+                        Modifica la información de la bodega seleccionada.
+                    </p>
+
+                </div>
+
+
+                <!-- ============================= -->
+                <!-- FORMULARIO -->
+                <!-- ============================= -->
+
+                <div class="card tarjeta">
+
+                    <div class="card-body">
+
+                        <h4 class="mb-4">
+                            Información de la bodega
+                        </h4>
+
+
+                        <form
+                            action="{{ url_for('editar_bodega', id=bodega[0]) }}"
+                            method="POST"
+                        >
+
+
+                            <div class="row">
+
+
+                                <!-- NOMBRE -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label
+                                        for="nom_bod"
+                                        class="form-label"
+                                    >
+                                        Nombre de la bodega
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="nom_bod"
+                                        name="nom_bod"
+                                        class="form-control"
+                                        value="{{ bodega[1] }}"
+                                        required
+                                    >
+
+                                </div>
+
+
+                                <!-- DIRECCIÓN -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label
+                                        for="dir_bod"
+                                        class="form-label"
+                                    >
+                                        Dirección
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="dir_bod"
+                                        name="dir_bod"
+                                        class="form-control"
+                                        value="{{ bodega[2] or '' }}"
+                                    >
+
+                                </div>
+
+
+                                <!-- DESCRIPCIÓN -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label
+                                        for="descripcion"
+                                        class="form-label"
+                                    >
+                                        Descripción
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="descripcion"
+                                        name="descripcion"
+                                        class="form-control"
+                                        value="{{ bodega[3] or '' }}"
+                                    >
+
+                                </div>
+
+
+                                <!-- ESTADO -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label
+                                        for="estado"
+                                        class="form-label"
+                                    >
+                                        Estado
+                                    </label>
+
+                                    <select
+                                        id="estado"
+                                        name="estado"
+                                        class="form-select"
+                                    >
+
+                                        <option
+                                            value="Activo"
+                                            {% if bodega[4] == "Activo" %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            Activo
+                                        </option>
+
+
+                                        <option
+                                            value="Inactivo"
+                                            {% if bodega[4] == "Inactivo" %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            Inactivo
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                            </div>
+
+
+                            <!-- ============================= -->
+                            <!-- BOTONES -->
+                            <!-- ============================= -->
+
+                            <div class="mt-3">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-dark"
+                                >
+                                    Guardar cambios
+                                </button>
+
+
+                                <a
+                                    href="{{ url_for('bodegas') }}"
+                                    class="btn btn-outline-secondary ms-2"
+                                >
+                                    Cancelar
+                                </a>
+
+                            </div>
+
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- ============================= -->
+<!-- JAVASCRIPT INVENTARIO -->
+<!-- ============================= -->
+
+<script>
+
+    function mostrarInventario(event) {
+
+        event.preventDefault();
+
+        const opciones =
+            document.getElementById("opcionesInventario");
+
+        const flecha =
+            document.getElementById("flechaInventario");
+
+
+        if (opciones.style.display === "none") {
+
+            opciones.style.display = "block";
+
+            flecha.textContent = "⌄";
+
+        } else {
+
+            opciones.style.display = "none";
+
+            flecha.textContent = "›";
+
+        }
+
+    }
+
+</script>
+
+
+<!-- Bootstrap JS -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+
+</body>
+
+</html>
